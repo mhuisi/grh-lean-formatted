@@ -1,20 +1,30 @@
 import Lib.Shimura.Uniformisation.LiftedIsogenies
 
-/-! Known result: Deformations of the PEL object have at most n-1 parameters. Only the upper bound
+/-!
+Known result: Deformations of the PEL object have at most n-1 parameters. Only the upper bound
 for first-order deformations is proved here, at every good place. The proof works on the finite
 group scheme of w-torsion with Drinfeld's lifting lemma, without p-divisible groups or crystals.
 Source: N. Katz, Serre–Tate local moduli, LNM 868 (1981), §1 (Drinfeld's lemma); J. Lubin, J. Tate,
 Formal moduli for one-parameter formal Lie groups, Bull. SMF 94 (1966); M. Harris, R. Taylor, The
-Geometry and Cohomology of Some Simple Shimura Varieties (2001), III.4.1. -/
+Geometry and Cohomology of Some Simple Shimura Varieties (2001), III.4.1.
+-/
 
 noncomputable section
 
-
 open CategoryTheory AlgebraicGeometry TrivSqZeroExt ThetaObject Obj IsGroupBaseChange CommRingCat
   DualNumber Module Dual Spec Over OverMorphism RingHom Algebra
-variable {E k M} [Field E] [CMBase E] {D : PEL E} [Field k] {Z σ} [AddCommGroup M] [Module k M] {X :
-  ThetaFamily D Z σ} {x₀ : ThetaObject X _} {x} (hp : IsPullbackAlong (sqZeroReduction k (M →ₗ[k]
-  k)) x₀ x) ⦃C : Type⦄ {C'} [CommRing C] [Algebra k C] [CommRing C'] [Algebra k C'] (φ : C →ₐ[k] C')
+variable
+  {E k M} [Field E] [CMBase E]
+  {D : PEL E} [Field k]
+  {Z σ} [AddCommGroup M] [Module k M]
+  {X : ThetaFamily D Z σ} {x₀ : ThetaObject X _} {x}
+  (hp : IsPullbackAlong
+    (sqZeroReduction k
+      (M →ₗ[k]
+        k))
+    x₀ x)
+  ⦃C : Type⦄ {C'} [CommRing C] [Algebra k C] [CommRing C'] [Algebra k C']
+  (φ : C →ₐ[k] C')
 
 instance : CommRing (TrivSqZeroExt C (M →ₗ[k] C)) := inferInstance
 
@@ -22,45 +32,61 @@ instance : IsLocalRing (TrivSqZeroExt k (M →ₗ[k] k)) :=
   .of_nonunits_add (by simp_all [isUnit_iff_isUnit_fst])
 
 attribute [-simp] smul_eq_zero
-attribute [local simp ←] Spec.map_comp map_comp_assoc ofHom_comp AlgHom.comp_toRingHom smul_smul
-  map_smul
-attribute [local simp↓] map_inj lift_def algebraMap_eq_inl'
+attribute [local simp ←]
+  Spec.map_comp map_comp_assoc ofHom_comp AlgHom.comp_toRingHom smul_smul map_smul
+attribute [local simp ↓] map_inj lift_def algebraMap_eq_inl'
 
-/-- For a k-algebra map φ: C → C', the ring homomorphism C ⊕ Hom_k(M,C) → C' ⊕ Hom_k(M,C') of
-trivial square-zero extensions given by φ and composition with φ. -/
-@[simps] def sqZeroMap : TrivSqZeroExt C (M →ₗ[k] C) →+* TrivSqZeroExt C' (M →ₗ[k] C') := by
-  refine' {toFun x := inl (φ x.fst) + inr (φ ∘ₗ x.snd), ..} <;> aesop
+/--
+For a k-algebra map φ: C → C', the ring homomorphism C ⊕ Hom_k(M,C) → C' ⊕ Hom_k(M,C') of
+trivial square-zero extensions given by φ and composition with φ.
+-/
+@[simps]
+def sqZeroMap : TrivSqZeroExt C (M →ₗ[k] C) →+* TrivSqZeroExt C' (M →ₗ[k] C') := by
+  refine' { toFun x := inl (φ x.fst) + inr (φ ∘ₗ x.snd), .. } <;> aesop
 
 variable (C) in
-def toSqZeroSpec : map (sqZeroReduction k (M →ₗ[k] k)) (specOver k C) ⟶ .mk (specMap
-  (sqZeroMap (ofId k C))) := homMk (sqZeroReduction ..)
+def toSqZeroSpec
+    : map (sqZeroReduction k (M →ₗ[k] k)) (specOver k C) ⟶ .mk (specMap (sqZeroMap (ofId k C))) :=
+  homMk (sqZeroReduction ..)
 
-lemma exists_point_lift [IsLocalRing C] y : ∃ Z, toSqZeroSpec C ≫ Z =
-  hp.isGroupBaseChange.pointEquiv y :=
+lemma exists_point_lift [IsLocalRing C] y
+    : ∃ Z, toSqZeroSpec C ≫ Z = hp.isGroupBaseChange.pointEquiv y :=
   let ⟨_, _, i, L⟩ := exists_isEtaleChart _ x.smoothOfRelativeDimension
   (L _ (inl ∘ _) (landsIn_iff_mem.2 i) ((Over.w _).trans (toSqZeroSpec C).w.symm) rfl).imp fun _ ↦
     (ext ·.1.1)
 
-/-- For a k-algebra map φ: C → C', the induced morphism Spec(C' ⊕ Hom_k(M,C')) → Spec(C ⊕
-Hom_k(M,C)) over Spec(k ⊕ M*), M* the dual of M. -/
-def sqZeroSpecMap : Over.mk (specMap (sqZeroMap (ofId k C'))) ⟶ .mk
-  (specMap (sqZeroMap (M := M) (ofId k C))) := homMk (specMap (sqZeroMap φ))
+/--
+For a k-algebra map φ: C → C', the induced morphism Spec(C' ⊕ Hom_k(M,C')) → Spec(C ⊕
+Hom_k(M,C)) over Spec(k ⊕ M*), M* the dual of M.
+-/
+def sqZeroSpecMap
+    : Over.mk (specMap (sqZeroMap (ofId k C'))) ⟶ .mk (specMap (sqZeroMap (M := M) (ofId k C))) :=
+  homMk (specMap (sqZeroMap φ))
 
-lemma sqZeroSpecMap_point_lift {y Z} (e : toSqZeroSpec C ≫ Z = hp.isGroupBaseChange.pointEquiv y) :
-  toSqZeroSpec _ ≫ sqZeroSpecMap φ ≫ Z = hp.isGroupBaseChange.pointEquiv (specOver.map φ ≫ y) := by
-  simp [pointEquiv_apply] at *; ext; simp [← e, toSqZeroSpec, sqZeroSpecMap,
-    specOver.map]; congr 2; aesop
+lemma sqZeroSpecMap_point_lift {y Z} (e : toSqZeroSpec C ≫ Z = hp.isGroupBaseChange.pointEquiv y)
+    : toSqZeroSpec _ ≫ sqZeroSpecMap φ ≫ Z
+      = hp.isGroupBaseChange.pointEquiv (specOver.map φ ≫ y) := by
+  simp [pointEquiv_apply] at *
+  ext
+  simp [← e, toSqZeroSpec, sqZeroSpecMap, specOver.map]
+  congr 2
+  aesop
 
-lemma isInfinitesimal_of_comp_eq_zero (Z : _ ⟶ x.groupScheme) : toSqZeroSpec C ≫ Z = 0 →
-  IsInfinitesimal (ofHom (fstHom C ..).1) Z := by
-  simp [IsInfinitesimal, ↓eq_zero_iff_factors_zero_section]; tauto
+lemma isInfinitesimal_of_comp_eq_zero (Z : _ ⟶ x.groupScheme)
+    : toSqZeroSpec C ≫ Z = 0 → IsInfinitesimal (ofHom (fstHom C ..).1) Z := by
+  simp [IsInfinitesimal, ↓ eq_zero_iff_factors_zero_section]; tauto
 
 include hp in
 /-- Known result: Deformations of the PEL object have at most n-1 parameters. -/
-lemma tangent_bound [IsAlgClosed k] (hw : D.IsGoodAt (ker x₀.baseHom)) {V : ValuationSubring ℂ} {w}
-  (e : FullStructure w) (hr : x₀.IsRigid) {χ : V →+* k} (h₀ : x₀.IsPullbackAlong (specMap χ) w)
-  (hρ : x.baseHom = (algebraMap ..).comp x₀.baseHom) (h : ∀ l, specMap (map (eval k M l)).1 ≫ x =
-  specMap (algebraMap ..) ≫ x₀ → l = 0) : finrank k M ≤ Fintype.card D.Index - 1 := by
+lemma tangent_bound
+    [IsAlgClosed k]
+    (hw : D.IsGoodAt (ker x₀.baseHom))
+    {V : ValuationSubring ℂ} {w} (e : FullStructure w)
+    (hr : x₀.IsRigid)
+    {χ : V →+* k} (h₀ : x₀.IsPullbackAlong (specMap χ) w)
+    (hρ : x.baseHom = (algebraMap ..).comp x₀.baseHom)
+    (h : ∀ l, specMap (map (eval k M l)).1 ≫ x = specMap (algebraMap ..) ≫ x₀ → l = 0)
+    : finrank k M ≤ Fintype.card D.Index - 1 := by
   obtain ⟨_, ⟨-, c, hc, hc0, t, ht, H⟩, b, hb, ⟨_, _, co⟩, hN⟩ := isGoodAt_ker_spec hw
   choose ω L Q A F P using by simpa [hρ] using x.exists_tangent_log (b := b) (by simp [*])
   choose Y J using exists_point_lift hp
@@ -70,19 +96,32 @@ lemma tangent_bound [IsAlgClosed k] (hw : D.IsGoodAt (ker x₀.baseHom)) {V : Va
       y := by simp [J]) := have n := isInfinitesimal_of_comp_eq_zero (Z - Y y.1) (by
         simp [*]); by simpa [← smul_add, L n, hc] using (A (n.smul c) N).symm
     And.intro N @hL
-  refine finrank_le_of_placeTorsion hw h₀ e (fun _ ↦ ⟨⟨(snd <| ω <| c • Y ·.1), fun y
-    z ↦ by simp [↓hL (y + z) (Y y + Y z), A (N y) (N z)]⟩, fun a y ↦ by simp [↓hL (a • y) (a • Y y),
-    smul_comm c, L (N y)]⟩) (fun φ y ↦ by simp [hL (placeTorsionMap φ y) _ (sqZeroSpecMap_point_lift
-    hp φ (J _)), ← ModuleObj.comp_smul, P (N y) (sqZeroSpecMap φ) rfl]) (fun y u ↦ by simp [hc, (hL
-    y (Y y - sqZeroSpecMap (.comp (ofId ..) (fstHom ..)) ≫ Y y.1) (by simp [sqZeroSpecMap_point_lift
-    hp, ← specOver.map_comp_assoc, *])).trans (@L _ _ (ofHom (sqZeroMap (fstHom ..))) ⟨(⟨sqZeroMap
-    (ofId ..) ·, by ext <;> simp⟩), by simp +contextual [TrivSqZeroExt.ext_iff, DFunLike.ext_iff]⟩ _
-    _ (by simp [IsInfinitesimal, OverMorphism.ext_iff, sqZeroSpecMap]; congr; ext <;> simp) c)])
+  refine finrank_le_of_placeTorsion hw h₀ e
+    (fun _ ↦ ⟨
+      ⟨(snd <| ω <| c • Y ·.1), fun y z ↦ by simp [↓ hL (y + z) (Y y + Y z), A (N y) (N z)]⟩,
+      fun a y ↦ by simp [↓ hL (a • y) (a • Y y), smul_comm c, L (N y)]
+    ⟩)
+    (fun φ y ↦ by
+      simp [hL (placeTorsionMap φ y) _ (sqZeroSpecMap_point_lift hp φ (J _)), ← ModuleObj.comp_smul,
+        P (N y) (sqZeroSpecMap φ) rfl])
+    (fun y u ↦ by
+      simp [hc,
+        (hL y (Y y - sqZeroSpecMap (.comp (ofId ..) (fstHom ..)) ≫ Y y.1)
+            (by simp [sqZeroSpecMap_point_lift hp, ← specOver.map_comp_assoc, *])).trans
+          (@L _ _ (ofHom (sqZeroMap (fstHom ..)))
+            ⟨
+              (⟨sqZeroMap (ofId ..) ·, by ext <;> simp⟩),
+              by simp +contextual [TrivSqZeroExt.ext_iff, DFunLike.ext_iff]
+            ⟩
+            _ _
+            (by simp [IsInfinitesimal, OverMorphism.ext_iff, sqZeroSpecMap]; congr; ext <;> simp)
+            c)])
     fun l hl ↦ ?_
   let m := specMap (map (eval k M l)).1
-  obtain ⟨⟨z, hz⟩, z₀, hz'⟩ := x.exists_isPullbackAlong m,
-    x₀.exists_isPullbackAlong (specMap (algebraMap _ k[ε]))
-  obtain ⟨o, hq, hq₀⟩ := by simpa [hρ, ← comp_assoc] using hz.baseHom_eq_comp,
+  obtain ⟨⟨z, hz⟩, z₀, hz'⟩ :=
+    x.exists_isPullbackAlong m, x₀.exists_isPullbackAlong (specMap (algebraMap _ k[ε]))
+  obtain ⟨o, hq, hq₀⟩ :=
+    by simpa [hρ, ← comp_assoc] using hz.baseHom_eq_comp,
     (by simpa [m, ← hz, IsPullbackAlong] using! hp : IsPullbackAlong (sqZeroReduction ..) x₀ z),
     (by simp [← hz', IsPullbackAlong] : IsPullbackAlong (sqZeroReduction ..) x₀ z₀)
   choose G _ u K using drinfeld_lift hq₀ hq fun _ _ ↦ (·.ringChar_smul_and_smul_eq_zero.2 o hb hc)
@@ -117,12 +156,19 @@ lemma tangent_bound [IsAlgClosed k] (hw : D.IsGoodAt (ker x₀.baseHom)) {V : Va
     D.β - b) • y).symm
   choose μ _ g using exists_lift_of_kills_ker μ g (by simp) hq (𝟙 _) 1 (by simp) (by simp)
   obtain ⟨_, -, N⟩ := isLinear_and_pairing_eq_of_reduction _ g
-  refine h l (hz ▸ hz' ▸ (hr.eq_of_hom hz' (o ▸ hz'.baseHom_eq_comp) μ (by simp [N hz']) fun l ↦
-    eq_of_sub_eq_zero ((Ideal.torsionOf_eq_top_iff ..).1 (eq_top_mono (sup_le (by simp [smul_sub,
-    ← IsLinear.smul_comp, (Subtype.ext l.2 : D.𝔑 • l = 0)]) ?_) hN))).1.symm)
-  have K := AgreeModEps.ringChar_smul_and_smul_eq_zero hq (y := z₀.levelPoints l ≫ μ - z.levelPoints
-    l) fun _ _ t ↦ by simp [hq.levelPoints_eq_pullSection, ← hq₀.levelPoints_eq_pullSection,
-    g, OverMorphism.ext_iff, by simpa using t.w, ← hq.isGroupBaseChange.pullSection_comp,
-    ← hq₀.isGroupBaseChange.pullSection_comp_assoc, ← comp_left _ _ _ hq₀.schemeMap]
+  refine h l
+    (hz ▸ hz'
+      ▸ (hr.eq_of_hom hz' (o ▸ hz'.baseHom_eq_comp) μ (by simp [N hz']) fun l ↦
+        eq_of_sub_eq_zero ((Ideal.torsionOf_eq_top_iff ..).1
+          (eq_top_mono
+            (sup_le (by simp [smul_sub, ← IsLinear.smul_comp, (Subtype.ext l.2 : D.𝔑 • l = 0)]) ?_)
+            hN))).1.symm)
+  have K :=
+    AgreeModEps.ringChar_smul_and_smul_eq_zero hq (y := z₀.levelPoints l ≫ μ - z.levelPoints l)
+      fun _ _ t ↦ by
+        simp [hq.levelPoints_eq_pullSection, ← hq₀.levelPoints_eq_pullSection, g,
+          OverMorphism.ext_iff, by simpa using t.w, ← hq.isGroupBaseChange.pullSection_comp,
+          ← hq₀.isGroupBaseChange.pullSection_comp_assoc, ← comp_left _ _ _ hq₀.schemeMap]
   simpa [mul_comm (ker _), smul_comm (ringChar k), Ideal.span_insert, Ideal.sup_mul,
-    Ideal.span_singleton_mul_le_iff, Nat.cast_smul_eq_nsmul, K] using (@K.2 _ o _ · hb)
+      Ideal.span_singleton_mul_le_iff, Nat.cast_smul_eq_nsmul, K]
+    using (@K.2 _ o _ · hb)

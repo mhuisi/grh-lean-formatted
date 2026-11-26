@@ -3,7 +3,8 @@ import New.Selmer.TwistForRows
 import New.Selmer.RowsExist
 import New.Selmer.DenominatorBound
 
-/-! A twist with few congruences for each prime. For each prime ℓ and each identification of the
+/-!
+A twist with few congruences for each prime. For each prime ℓ and each identification of the
 complex numbers with the algebraic closure of the ℓ-adic numbers there is a twist whose first m
 powers have few congruences, and the denominators of projections to theta lifts and the divisibility
 of ratios of Hecke values sum over all ℓ to at most `Data.B₀` per rank and dimension, resp. x^999
@@ -13,14 +14,17 @@ Related work: Prasanna, Integrality of a ratio of Petersson norms, 2006 (after R
 Klosin, Congruences among modular forms on U(2,2) and the Bloch–Kato conjecture, 2009; Mazur–Rubin,
 Ranks of twists of elliptic curves, 2010.
 
-This file: Existence of twists, one per embedding, whose first m powers have few congruences. -/
+This file: Existence of twists, one per embedding, whose first m powers have few congruences.
+-/
 
 open Submodule Data Polynomial Multiset Finset Real
 
-/-- All data D have m-fold twists ϑ_ι, one for each prime ℓ and isomorphism ι: ℂ ≅ ℚ̄_ℓ, such that
+/--
+All data D have m-fold twists ϑ_ι, one for each prime ℓ and isomorphism ι: ℂ ≅ ℚ̄_ℓ, such that
 the family (ϑ_ι^n) is fit (`Data.IsFitFamily`) for 1 ≤ n ≤ m.
 
-A twist with few congruences for each prime. -/
+A twist with few congruences for each prime.
+-/
 lemma exists_isFitFamily {P} (D : Data P) : ∃ θ, D.IsFitFamily θ := by
   choose R' F' using fun {ℓ} {_ : ThePrime ℓ} {ι : PadicIso ℓ} (p : {p : D.Pair × D.LiftIndex //
     p.1.IsRankOne p.2}) ↦ exists_row_for_all_twists ι (isApt_rank_one 1 p.2) 1 (fun _ ↦ {0}) 1 (by

@@ -1,13 +1,15 @@
 import Lib.GaloisRep.BaseChange.UnitaryRoots
 
-/-! Part of: Cyclic base change of prime degree for definite unitary groups (weak lift, local
+/-!
+Part of: Cyclic base change of prime degree for definite unitary groups (weak lift, local
 matching) (known result; see Lib.GaloisRep.BaseChange.BaseChangeEigenchar).
 
 Part of: Adelic Weil representation of a unitary group and the invariant theta functional (known
 result; see Lib.Weil.DualPair.PairSplitting).
 
 This file: An adelic polynomial root of the norm can be corrected to a rational one. Splitting data
-for the Weil representation pass to suitably unramified CM extensions. -/
+for the Weil representation pass to suitably unramified CM extensions.
+-/
 seal Finset.univ Finset.sum Finset.prod
 
 attribute [-simp] Subtype.forall multiplicity_eq_one_of_not_finiteMultiplicity
@@ -15,30 +17,50 @@ attribute [-simp] Subtype.forall multiplicity_eq_one_of_not_finiteMultiplicity
 open NumberField Matrix Polynomial UniqueFactorizationMonoid AdjoinRoot MulAction Function
   Norms.L2Operator Algebra AlgEquiv MulDistribMulAction Ideal ComplexConjugate Ring
 
-/-- For a step E'/E, σ ≠ 1, σ^p = 1, z a root for P = σP = charpoly γ': some rational w and
+/--
+For a step E'/E, σ ≠ 1, σ^p = 1, z a root for P = σP = charpoly γ': some rational w and
 adelic c make x = w·z·σc invertible at each adelic unitary γ killed by rad P, and a·x(γ)* =
-x(γ) implies a·c(γ)* = c(γ). -/
-lemma exists_global_root {E E' n} [Field E] [CMType E] [Field E'] [Algebra E E'] [Fintype n]
-    {p μ} {σ : Gal(E'/E)} [Fact p.Prime] (ho : σ ^ p = 1) (hσ : σ ≠ 1) [hμ : IsStep (E := E) E' μ]
-    {z} {γ' : U (n := n) 1} : let k := algebraMap E' _; let P := γ'.1.1.charpoly; σ • P = P →
-    IsNormRoot n (adeleMap σ) p 1 (normKer _ μ) (P.map k) z → ∀ {γ : Gf _ n}, γ.1.1.charpoly =
-      P.map k → let T c := z * mapRingHom (adeleMap σ.toRingHom) c; ∃ w c, ∀ x, .map k w * T c = x →
-        ∀ γ : Gf _ n, aeval γ.1.1 ((radical P).map k) = 0 → IsUnit (aeval γ.1.1 x) ∧
-        IsRootQuotient γ x ≤ IsRootQuotient γ c := by
+x(γ) implies a·c(γ)* = c(γ).
+-/
+lemma exists_global_root
+    {E E' n} [Field E] [CMType E] [Field E'] [Algebra E E'] [Fintype n]
+    {p μ} {σ : Gal(E'/E)} [Fact p.Prime]
+    (ho : σ ^ p = 1) (hσ : σ ≠ 1)
+    [hμ : IsStep (E := E) E' μ]
+    {z} {γ' : U (n := n) 1}
+    : let k := algebraMap E' _
+      let P := γ'.1.1.charpoly
+      σ • P = P → IsNormRoot n (adeleMap σ) p 1 (normKer _ μ) (P.map k) z
+        → ∀ {γ : Gf _ n},
+          γ.1.1.charpoly = P.map k
+            → let T c := z * mapRingHom (adeleMap σ.toRingHom) c
+              ∃ w c, ∀ x,
+                .map k w * T c = x
+                  → ∀ γ : Gf _ n,
+                    aeval γ.1.1 ((radical P).map k) = 0
+                      → IsUnit (aeval γ.1.1 x) ∧ IsRootQuotient γ x ≤ IsRootQuotient γ c := by
   intro k P hγ hz γ e T
-  obtain ⟨⟨_, v, hv⟩, hI⟩ := @id (IsCoprime P X) (isUnit_aeval_iff_isCoprime.1 (by simp)), fun {q} ↦
-    mem_primeFactors.trans (P.mem_normalizedFactors_iff (p := q) (charpoly_monic _).ne_zero)
+  obtain ⟨⟨_, v, hv⟩, hI⟩ :=
+    @id (IsCoprime P X) (isUnit_aeval_iff_isCoprime.1 (by simp)),
+    fun {q} ↦
+      mem_primeFactors.trans (P.mem_normalizedFactors_iff (p := q) (charpoly_monic _).ne_zero)
   have cj {γ : Gf E' n} (h : aeval γ.1.1 (P.map k) = 0) := by
-    simpa [← aeval_comp, star, by simpa using left_inv_eq_left_inv γ.2 (by
-      simpa [h] using congr(aeval γ.1.1 (map k $hv)))] using star_aeval (R := 𝔸f E') γ.1.1
-  let τ := (toPerm σ).subtypePermOfFintype fun q h ↦ hI.2 ((hI.1 h).imp
-    (.map (toMulEquiv _ σ)) (.imp (by simp [smul_eq_map]) (hγ ▸ map_dvd (toMulEquiv _ σ) ·)))
-  have C S [CommRing S] f := pairwise_primeFactors_isRelPrime (a := P).imp fun _ _ ↦
-    (·.isCoprime.map (mapRingHom (S := S) f))
-  have crt {S} [CommRing S] f := exists_forall_sub_mem_ideal
-    (((C S f).subtype _).mono fun _ _ ↦ (isCoprime_span_singleton_iff ..).2)
-  have := e.symm.dvd.trans (charpoly_dvd_charpoly_aeval_comp (T^[p] 1 - X *
-    ((T^[p] 1).map conj).comp (v.map k)))
+    simpa [← aeval_comp, star,
+        by simpa using left_inv_eq_left_inv γ.2 (by simpa [h] using congr(aeval γ.1.1 (map k $hv)))]
+      using star_aeval (R := 𝔸f E') γ.1.1
+  let τ :=
+    (toPerm σ).subtypePermOfFintype fun q h ↦
+      hI.2 ((hI.1 h).imp (.map (toMulEquiv _ σ))
+        (.imp (by simp [smul_eq_map]) (hγ ▸ map_dvd (toMulEquiv _ σ) ·)))
+  have C S [CommRing S] f :=
+    pairwise_primeFactors_isRelPrime (a := P).imp fun _ _ ↦
+      (·.isCoprime.map (mapRingHom (S := S) f))
+  have crt {S} [CommRing S] f :=
+    exists_forall_sub_mem_ideal (((C S f).subtype _).mono fun _ _ ↦
+      (isCoprime_span_singleton_iff ..).2)
+  have :=
+    e.symm.dvd.trans (charpoly_dvd_charpoly_aeval_comp
+      (T^[p] 1 - X * ((T^[p] 1).map conj).comp (v.map k)))
   choose hq hm hP using fun q ↦ (hI.1 (Subtype.prop q)).imp_left Fact.mk
   let θ (q : primeFactors P) := aeval (R := 𝔸f E') (root q.1 : 𝔸f (AdjoinRoot q.1))
   choose _ h₁ sur ker F hβ using fun q ↦ adjoinRoot_cm_presentation (hm q) 1 (fun φ x h ↦ mod_cast
@@ -47,9 +69,13 @@ lemma exists_global_root {E E' n} [Field E] [CMType E] [Field E'] [Algebra E E']
         ((charpoly_map ..).substr (map_dvd φ (hP q)))))).2) (refl (θ q)) (.refl k)
   choose d hd e₀ using fun q ↦ (hz.2 _ e).1 _ (leftMulMatrix (Module.finBasis ..) (θ q X))
     (by simp [aeval_algHom_apply, *, mk_eq_zero.2])
-  simp [← cj (e ▸ aeval_self_charpoly _), aeval_algHom_apply, ← norm_eq_matrix_det, by simpa [←
-    (by rw [iterate_mul_apply, map_one, mul_one]; with_unfolding_all rfl : T^[p] 1 =
-    twistedNorm (.map (adeleMap σ)) p z)] using (hz.2 γ e).2, mem_span_singleton] at this crt e₀ h₁
+  simp [← cj (e ▸ aeval_self_charpoly _), aeval_algHom_apply, ← norm_eq_matrix_det,
+      by
+        simpa [← (by rw [iterate_mul_apply, map_one, mul_one]; with_unfolding_all rfl
+            : T^[p] 1 = twistedNorm (.map (adeleMap σ)) p z)]
+          using (hz.2 γ e).2,
+      mem_span_singleton]
+    at this crt e₀ h₁
   have hu q := lmul_isUnit_iff.1 ((LinearMap.isUnit_iff_isUnit_det _).2 ⟨_, e₀ q⟩)
   have hw q := left_inv_eq_right_inv (by simpa [hP, mk_eq_zero.2] using congr(mk q $hv)) (h₁ q)
   let g {q q'} (h : τ q = q') := mapAlgEquiv σ q q' (.of_eq (smul_eq_map E' σ ▸ congr($h)))
@@ -73,8 +99,8 @@ lemma exists_global_root {E E' n} [Field E] [CMType E] [Field E'] [Algebra E E']
   let r q := @invFun _ _ ⟨q⟩ (periodicOrbit τ) (periodicOrbit τ q)
   choose e j J hr using by simpa [periodicOrbit] using (by simp [r, τ.injective.mem_periodicPts,
     invFun_eq, periodicOrbit_apply_eq] : ∀ q, r (τ q) = r q ∧ q ∈ periodicOrbit τ (r q))
-  obtain ⟨⟨c, Y⟩, w, W⟩ := crt k fun q ↦ T^[j q] (c₁ (r q)),
-    crt (.id _) fun q ↦ surjInv mk_surjective (y q ^ 0 ^ j q).1
+  obtain ⟨⟨c, Y⟩, w, W⟩ :=
+    crt k fun q ↦ T^[j q] (c₁ (r q)), crt (.id _) fun q ↦ surjInv mk_surjective (y q ^ 0 ^ j q).1
   use w, c, fun x X γ h ↦ (crt k fun q ↦ surjInv (sur q) (θ q x)⁻¹ʳ).elim fun d hd ↦ ?_
   simp [← ker, ← mk_eq_mk, surjInv_eq] at W Y hd
   choose H G using @id (∀ q, IsUnit (θ q x) ∧ IsSelfAdjoint (star (θ q c) * θ q x))
@@ -87,8 +113,9 @@ lemma exists_global_root {E E' n} [Field E] [CMType E] [Field E'] [Algebra E E']
       rw [·, iterate_minimalPeriod]; simpa using! (h₄ _))
       (by simp [Nat.mod_eq_of_lt ·, -iterate_succ]))
   have K (f g : (𝔸f E')[X]) := by
-    simpa [Subtype.forall', ← ker] using (aeval_eq_zero_of_dvd_aeval_eq_zero · h) ∘ (map_prod
-      (mapRingHom k) ..).dvd.trans ∘ Finset.prod_dvd_of_coprime (C _ k) (z := f - g)
+    simpa [Subtype.forall', ← ker] using
+      (aeval_eq_zero_of_dvd_aeval_eq_zero · h) ∘ (map_prod (mapRingHom k) ..).dvd.trans
+        ∘ Finset.prod_dvd_of_coprime (C _ k) (z := f - g)
   use .of_mul_eq_one _ (by simpa [*, inverse] using K (x * d) 1), fun a b ↦ by rw [IsRootQuotient,
     cj, K _ (_ * (c * d)), map_mul, ← mul_assoc, ← cj, b, ← map_mul, mul_left_comm, K] <;> simp [*,
     -hr, -Y, K _ 0, ← mul_assoc, mul_inverse_cancel_right, (star_star_mul ..).symm.trans (G _)]
@@ -97,33 +124,63 @@ open WithZero Valued IsDedekindDomain HeightOneSpectrum FiniteMultiplicity Finse
 
 attribute [local simp] prime of_prime_left differentIdeal_ne_bot im_pos
 
-/-- If E carries Weil data, so does every stably unramified CM extension L with compatible CM
-type such that no place v = v̄ of L divides the relative different. -/
-lemma nonempty_weilData_of_unramified {E L : Type} [Field E] [CMType E] [Field L] [Algebra E L]
-    [h : CMOver E L] [WeilData E] [StablyUnram L]
-  (hu : ∀ v : FinPlace L, star v = v → ¬v.1 ∣ differentIdeal (𝓞 E) _) : Nonempty (WeilData L) := by
+/--
+If E carries Weil data, so does every stably unramified CM extension L with compatible CM
+type such that no place v = v̄ of L divides the relative different.
+-/
+lemma nonempty_weilData_of_unramified
+    {E L : Type}
+    [Field E] [CMType E] [Field L] [Algebra E L] [h : CMOver E L] [WeilData E] [StablyUnram L]
+    (hu : ∀ v : FinPlace L, star v = v → ¬ v.1 ∣ differentIdeal (𝓞 E) _)
+    : Nonempty (WeilData L) := by
   obtain ⟨⟨_, -, -, g, -, _, H⟩, ⟨⟩, _⟩ :=
     @exists_reduction_and_idele_generator L _ _ (differentIdeal ℤ _) (by simp),
-    exists_wellFoundedLT (FinPlace L), (by simpa [RingHom.ext_iff] using h.2 <| Φ ·)
+    exists_wellFoundedLT (FinPlace L),
+    (by simpa [RingHom.ext_iff] using h.2 <| Φ ·)
   let i := algebraMap E L
   let s := principalIdele (.map i.1 (.mk0 j j_ne_zero)) * g
-  have ⟨β, _⟩ := exists_idele_eq_uniformizer_zpow (fun u ↦
-    (ite (u < star u) 1 0 - (v (s.1 u)).log) / 2) ((finite_idele_val_ne_one s).subset (by aesop))
-  refine have : SplittingChar L := ⟨⟨υ.1.comp ⟨_, .units_map (.prodMap (.pi (∏ u with u.comap i = ·,
-    Pi.evalMonoidHom _ u)) (adeleNorm ..)) (by simp [MonoidHom.pi]; and_intros <;> fun_prop)⟩,
-    fun _ ⟨x, e⟩ ↦ υ.2 _ ⟨norm E x, ?_⟩⟩, fun _ _ ↦ by
-    erw [υ_unit] <;> simp_all [prod_fiberwise, adeleNorm_mem_Ohat, Submonoid.mem_units_iff], fun _ ↦
-    congr(υ.1 $(by bound)).trans (υ_star _)⟩; ⟨⟨i j, by simp [← map_star_CM], by aesop, β,
-    fun u ↦ ?_, by simpa [map_ofNat] using map_isIntegral_int i isIntegral_traceOne,
-      exists_eq_principalIdele_mul_norm.2.2⟩⟩
+  have ⟨β, _⟩ :=
+    exists_idele_eq_uniformizer_zpow
+      (fun u ↦ (ite (u < star u) 1 0 - (v (s.1 u)).log) / 2)
+      ((finite_idele_val_ne_one s).subset (by aesop))
+  refine
+    have : SplittingChar L := ⟨
+      ⟨
+        υ.1.comp ⟨
+          _,
+          .units_map
+            (.prodMap
+              (.pi
+                (∏ u with u.comap i = ·,
+                  Pi.evalMonoidHom _ u))
+              (adeleNorm ..))
+            (by simp [MonoidHom.pi]; and_intros <;> fun_prop)
+        ⟩,
+        fun _ ⟨x, e⟩ ↦ υ.2 _ ⟨norm E x, ?_⟩
+      ⟩,
+      fun _ _ ↦ by
+        erw [υ_unit] <;> simp_all [prod_fiberwise, adeleNorm_mem_Ohat, Submonoid.mem_units_iff],
+      fun _ ↦ congr(υ.1 $(by bound)).trans (υ_star _)
+    ⟩
+    ⟨⟨
+      i j,
+      by simp [← map_star_CM],
+      by aesop,
+      β,
+      fun u ↦ ?_,
+      by simpa [map_ofNat] using map_isIntegral_int i isIntegral_traceOne,
+      exists_eq_principalIdele_mul_norm.2.2
+    ⟩⟩
   ext w <;> simp [← e]
   algebraize [Φ w]
   erw [norm_eq_prod_embeddings]
-  refine' prod_bij' (fun σ _ ↦ .mk σ) (fun u _ ↦ ⟨Φ u, _⟩) .. <;>
-    simp [algebraMap_toAlgebra, i, ← (h.2 _).2] <;> aesop
+  refine' prod_bij' (fun σ _ ↦ .mk σ) (fun u _ ↦ ⟨Φ u, _⟩) ..
+    <;> simp [algebraMap_toAlgebra, i, ← (h.2 _).2] <;> aesop
   let w := FinPlace.below E u
-  rcases valuation_star u (i j), self_dual w ▸ log_exp _, (H (star ↑g⁻¹)).1 (forall_ψf_mul_eq_one.1
-    (by simp_all [↓ψf_star (_ * _), mem_Ô, forall_ψf_mul_eq_one.2 ∘ (H _).2])),
+  rcases valuation_star u (i j), self_dual w ▸ log_exp _,
+    (H (star ↑g⁻¹)).1
+      (forall_ψf_mul_eq_one.1 (by
+        simp_all [↓ ψf_star (_ * _), mem_Ô, forall_ψf_mul_eq_one.2 ∘ (H _).2])),
     self_dual w ▸ exp_ne_zero,
     differentIdeal_eq_differentIdeal_mul_differentIdeal ℤ (𝓞 E) (𝓞 L) ▸ emultiplicity_mul u.prime
   rw [← exp_log (x := v _), exp_inj] <;> simp_all [s, i, ← w.valuation_liesOver L, mem_Ô,

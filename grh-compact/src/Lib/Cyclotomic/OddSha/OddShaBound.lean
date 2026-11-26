@@ -1,6 +1,7 @@
 import Lib.Cyclotomic.Kolyvagin.ComponentBound
 
-/-! Known result: Bound for the odd part of a twisted Tate–Shafarevich group of an abelian CM field.
+/-!
+Known result: Bound for the odd part of a twisted Tate–Shafarevich group of an abelian CM field.
 Only an upper bound is proved here, without the main conjecture, and small primes are handled by a
 crude count of ray class group generators. One non-zero integer, at most an explicit quantity times
 the class number, bounds the lengths at all primes including 2. Source: B. Mazur, A. Wiles, Class
@@ -9,30 +10,44 @@ fields of abelian extensions of Q, Invent. Math. 76 (1984); C. Greither, Ann. In
 
 This file: Ray class group generators detect cocycles unramified off l; crude count by Minkowski.
 One non-zero integer, at most an explicit quantity times the class number, bounds lengths of odd
-Tate-twisted Sha groups at all primes. -/
+Tate-twisted Sha groups at all primes.
+-/
 
 open Function Ideal NeZero IsCyclotomicExtension.Rat IsDedekindDomain.HeightOneSpectrum
 
-/-- For E ⊆ ℚ(ζ_N) and l prime, some finite s ⊆ G_E, with #s ≤ y²⁰ whenever N ≤ y and l ≤ y²,
+/--
+For E ⊆ ℚ(ζ_N) and l prime, some finite s ⊆ G_E, with #s ≤ y²⁰ whenever N ≤ y and l ≤ y²,
 detects the locally constant O/lⁿ(−e)-valued cocycles unramified off l, for all n, e and O
-with `PadicIntegerRing` O l. -/
-lemma exists_detecting_points_cocycles {N E} [NeZero N] [Field E] [EmbeddedNumberField E] (h : ∀ x,
-  algebraMap E Ω x ∈ cycloField N) l [ThePrime l] : ∃ s : Finset _, (∀ y, N ≤ y → l ≤ y ^ 2 →
-  s.card ≤ y ^ 20) ∧ ∀ {O} [CommRing O] [PadicIntegerRing O l] {n e}, ∀ z ∈ selmerModule (tateTwist
-  l E O e) (placesDividing E l) ∅ (QuotSpan (l ^ n : O)), (∀ g ∈ s, z g = 0) → z = 0 := by
+with `PadicIntegerRing` O l.
+-/
+lemma exists_detecting_points_cocycles
+    {N E} [NeZero N] [Field E] [EmbeddedNumberField E]
+    (h : ∀ x, algebraMap E Ω x ∈ cycloField N)
+    l [ThePrime l]
+    : ∃ s : Finset _,
+      (∀ y, N ≤ y → l ≤ y ^ 2 → s.card ≤ y ^ 20)
+        ∧ ∀ {O} [CommRing O] [PadicIntegerRing O l] {n e},
+          ∀ z ∈ selmerModule (tateTwist l E O e) (placesDividing E l) ∅ (QuotSpan (l ^ n : O)),
+            (∀ g ∈ s, z g = 0) → z = 0 := by
   set M := N * l ^ 2 with hM
-  let r (g : cycloGalGroup M) :=
-    {g.1 with commutes' := (h · ⟨_, cycCharMod_eq_one_of_dvd ⟨_, hM⟩ g.2⟩)}
+  let r (g : cycloGalGroup M) := {
+    g.1 with
+    commutes' := (h · ⟨_, cycCharMod_eq_one_of_dvd ⟨_, hM⟩ g.2⟩)
+  }
   let f := cycCharMod (Γ := Gal(Ω/E)) Ω M
   have : 2 < M := by nlinarith [pos N, (Fact.out : 1 < l)]
-  obtain ⟨⟨i, j⟩, _⟩ := index_pow_at_places_le M (placesDividing (cycloField M) l),
-    isTotallyComplex (cycloField M) this
+  obtain ⟨⟨i, j⟩, _⟩ :=
+    index_pow_at_places_le M (placesDividing (cycloField M) l), isTotallyComplex (cycloField M) this
   choose ι _ b m hm hh H using exists_detecting_points_hom (cycloGalGroup M) _ M i
-  refine ⟨.image (Sum.elim (invFun f) (r ∘ b)) .univ, fun y a c ↦ Finset.card_image_le.trans ?_,
+  refine ⟨
+    .image (Sum.elim (invFun f) (r ∘ b)) .univ,
+    fun y a c ↦ Finset.card_image_le.trans ?_,
     @fun O _ _ n _ z s t ↦
-    (fun k (h : l ^ k • z = 0) ↦ ?_) n (funext₂ (by simp [↓nsmul_quot_eq_zero]))⟩
-  · have d {p : Ideal ℤ} [p.IsMaximal] (h : p ≠ ⊥) : (IsDedekindDomain.primesOverFinset p
-        (NumberField.RingOfIntegers (cycloField M))).card ≤ Module.finrank ℚ (cycloField M) := by
+      (fun k (h : l ^ k • z = 0) ↦ ?_) n (funext₂ (by simp [↓ nsmul_quot_eq_zero]))
+  ⟩
+  · have d {p : Ideal ℤ} [p.IsMaximal] (h : p ≠ ⊥)
+        : (IsDedekindDomain.primesOverFinset p (NumberField.RingOfIntegers (cycloField M))).card
+          ≤ Module.finrank ℚ (cycloField M) := by
       rw [← NumberField.RingOfIntegers.rank, ← sum_ramification_inertia_eq_finrank p,
         ← Set.ncard_coe_finset, IsDedekindDomain.coe_primesOverFinset h, ← Nat.card_coe_set_eq,
         Nat.card_eq_fintype_card, Fintype.card_eq_sum_ones]
@@ -45,31 +60,52 @@ lemma exists_detecting_points_cocycles {N E} [NeZero N] [Field E] [EmbeddedNumbe
     grw [d, finrank M, Nat.totient_le, hM, a, c] at *
     nlinarith [Nat.zero_le (y ^ 15)]
     all_goals first | omega | simp [ne, NumberField.classNumber, Ne.pos, i]
-  induction' k with _ ih generalizing z <;> ext1 g; simp [↓← h]
+  induction' k with _ ih generalizing z <;> ext1 g
+  simp [↓ ← h]
   replace h := ih _ (nsmul_mem s M) (by simp [t · ·]) (by grind)
-  obtain ⟨A, u, -, c⟩ := (mem_selmerModule_iff.1 s).imp_left fun m x y ↦ (m (r x) y).trans (congrArg
-    _ (by simpa [cycPowDirichlet, tateTwist, -map_inv] using! (cycPowDirichlet_smul_eq_self (O :=
-    O) (ψ := 1) (cycCharMod_eq_one_of_dvd (one_mul M).dvd x⁻¹.2) congr($h y)).1))
+  obtain ⟨A, u, -, c⟩ :=
+    (mem_selmerModule_iff.1 s).imp_left fun m x y ↦
+      (m (r x) y).trans
+        (congrArg _ (by
+          simpa [cycPowDirichlet, tateTwist, -map_inv] using!
+            (cycPowDirichlet_smul_eq_self (O := O) (ψ := 1)
+              (cycCharMod_eq_one_of_dvd (one_mul M).dvd x⁻¹.2) congr($h y)).1))
   erw [← div_mul_cancel g, A ⟨(g / _).restrictScalars _, f.div_mem_ker_iff.2 _⟩, t (invFun f (f g)),
-    congrFun ((@H _ _ (z <| r ·) (c.comp_continuous (continuous_of_equivariant_emb 1)) (A · <| r ·)
-    congr($h ∘ r) (FinPlace.isPlaceOver_placeOver · |> fun o k y a ↦ u (r y) (o.isPlaceOver_below
-    (K := ℚ).exists_above.imp fun w ⟨p, _⟩ ↦ ⟨k ∘ o.valuation_natCast_lt_one_iff.1 ∘
-    p.valuation_natCast_lt_one_iff.2, _, p, a⟩))).2 (by simp [t]))] <;> simp [invFun_eq]
+      congrFun ((@H _ _ (z <| r ·) (c.comp_continuous (continuous_of_equivariant_emb 1))
+        (A · <| r ·) congr($h ∘ r)
+        (FinPlace.isPlaceOver_placeOver ·
+          |> fun o k y a ↦
+            u (r y)
+              (o.isPlaceOver_below (K := ℚ).exists_above.imp fun w ⟨p, _⟩ ↦ ⟨
+                k ∘ o.valuation_natCast_lt_one_iff.1 ∘ p.valuation_natCast_lt_one_iff.2,
+                _,
+                p,
+                a
+              ⟩))).2 (by simp [t]))]
+    <;> simp [invFun_eq]
 
 open Nat DirichletCharacter Finset IsDiscreteValuationRing MulAut NumberField Pointwise
 
 attribute [local simp] smul_sum classNumber_ne_zero cycInv mul_assoc smul_smul smul_sub tateTwist
 
-/-- For a CM field E in ℚ(ζ_N), some integer 1 ≤ X ≤ 2^{4(N+t+3)^27}·h_E, h_E the class number,
+/--
+For a CM field E in ℚ(ζ_N), some integer 1 ≤ X ≤ 2^{4(N+t+3)^27}·h_E, h_E the class number,
 has length of `shaOdd` in O/lⁿ(−e) at most v(X), for all primes l, 0 ≤ e < t, n,
 and characteristic zero discrete valuation rings (O, v) over ℤ_l with all O/l^m finite,
 containing a primitive root of unity of order the exponent of (ℤ/N)^×.
 
-Known result: Bound for the odd part of a twisted Tate–Shafarevich group of an abelian CM field. -/
-lemma exists_length_shaOdd_le N t [NeZero N] E [Field E] [NumberField E] [IsCMField E] [Algebra E Ω]
-  (h : ∀ x, algebraMap E Ω x ∈ cycloField N) : ∃ X ≠ 0, X ≤ 2 ^ (4 * (N + t + 3) ^ 27) * classNumber
-  E ∧ ∀ l [_L : ThePrime l] O [CommRing O] [PadicIntegerRing O l], HasEnoughRootsOfUnity O
-  (Monoid.exponent (ZMod N)ˣ) → ∀ e < t, ∀ n, Module.length O (shaOdd l E O e n) ≤ addVal O X := by
+Known result: Bound for the odd part of a twisted Tate–Shafarevich group of an abelian CM field.
+-/
+lemma exists_length_shaOdd_le
+    N t
+    [NeZero N]
+    E [Field E] [NumberField E] [IsCMField E] [Algebra E Ω]
+    (h : ∀ x, algebraMap E Ω x ∈ cycloField N)
+    : ∃ X ≠ 0,
+      X ≤ 2 ^ (4 * (N + t + 3) ^ 27) * classNumber E
+        ∧ ∀ l [_L : ThePrime l] O [CommRing O] [PadicIntegerRing O l],
+          HasEnoughRootsOfUnity O (Monoid.exponent (ZMod N)ˣ)
+            → ∀ e < t, ∀ n, Module.length O (shaOdd l E O e n) ≤ addVal O X := by
   choose! X hX hk hS using exists_isStickelbergerBound N
   generalize hy : _ + 3 = y
   let Y e := 4 * φ N * (4 * X e * X e)
@@ -77,16 +113,22 @@ lemma exists_length_shaOdd_le N t [NeZero N] E [Field E] [NumberField E] [IsCMFi
     simp_rw [Y, ← mul_assoc]
     grw [hk, show _ + _ ≤ y by grind, (?_ : _ * 4 ≤ 2 ^ (2 * y ^ 6)), prod_const, card_Ioo,
       (?_ : _ - 1 ≤ y)] <;> ring_nf <;> grind [Nat.lt_two_pow_self, totient_le]
-  introv _ _; obtain rfl | he := eq_or_ne e 0
+  introv _ _
+  obtain rfl | he := eq_or_ne e 0
   · choose _ _ _ _ _ d R using exists_detecting_points_hom Gal(Ω/E) ∅ 0 (by simp [iInf_of_isEmpty])
-    refine .trans (And.elim (length_le_of_detecting_points (.funUnique ..)) (forall₂_and.1 fun z h ↦
-      R ?_ ?_ ?_ ?_)) (addVal_le_iff_dvd.2 (d.trans (by simp)).natCast) <;> simp [shaOdd,
-      mem_selmerModule_iff, shaLocalSet, inertiaAbove, placesDividing] at h <;> grind
-      [FinPlace.isPlaceOver_placeOver, IsPlaceOver.valuation_natCast_lt_one_iff]
+    refine .trans
+        (And.elim (length_le_of_detecting_points (.funUnique ..))
+          (forall₂_and.1 fun z h ↦ R ?_ ?_ ?_ ?_))
+        (addVal_le_iff_dvd.2 (d.trans (by simp)).natCast)
+      <;> simp [shaOdd, mem_selmerModule_iff, shaLocalSet, inertiaAbove, placesDividing] at h
+      <;> grind [FinPlace.isPlaceOver_placeOver, IsPlaceOver.valuation_natCast_lt_one_iff]
   let ι := MulSemiringAction.toAlgAut Gal(Ω/E) ℚ Ω
-  obtain ⟨hS, ⟨j, -⟩, hN, hE, p, hp, H⟩ := hS e he, isClosedEmbedding_galois_restrict ι, (fun g k ↦
-      ⟨⟨_, g.2, g.3, (h · ⟨g, k⟩)⟩, rfl⟩ : _ ≤ ι.range), (by tauto : cycChar Ω l = (cycChar Ω
-    l).comp ι ∧ ∀ g, ι (conjGal g) = cmConj * ι g * cmConj), exists_detecting_points_cocycles h l
+  obtain ⟨hS, ⟨j, -⟩, hN, hE, p, hp, H⟩ :=
+    hS e he,
+    isClosedEmbedding_galois_restrict ι,
+    (fun g k ↦ ⟨⟨_, g.2, g.3, (h · ⟨g, k⟩)⟩, rfl⟩ : _ ≤ ι.range),
+    (by tauto : cycChar Ω l = (cycChar Ω l).comp ι ∧ ∀ g, ι (conjGal g) = cmConj * ι g * cmConj),
+    exists_detecting_points_cocycles h l
   choose S hs using cycCharMod_surjective N
   let s := (S · / S 1)
   choose b hb using fun u g ↦ hN («conj» u («conj» cmConj g * g⁻¹)) (by simp [mul_left_comm])
@@ -118,17 +160,30 @@ lemma exists_length_shaOdd_le N t [NeZero N] E [Field E] [NumberField E] [IsCMFi
        Fintype.sum_congr (z · (ι (conjGal g))) (z · (ι g)) (fun ψ ↦ by
        cases (cycPowDirichlet l e ψ cmConj).inv_eq_self_iff.1 (by grind) <;> simp [(hZ
          ψ).2.symm, *]) + 2 * φ N * congrFun₂ ((Submodule.mem_iInf _).1 m.1.2 he) g ()
-  by_contra C; have K {ι} [Fintype ι] (p : ι → _) c H :=
-    C (.trans (length_le_of_detecting_points (.funUnique ..)
-    (fun z h i ↦ (mul_smul ..).trans (funext (hΦ (nsmul_mem h _) (fun ψ k ↦ by simpa [funext_iff]
-    using (nsmul_component_eq_zero hS k he (hZ h _))) (p i)))) H) (addVal_le_iff_dvd.2 (prod_const
-    (Y e) ▸ (pow_dvd_pow_of_dvd_of_le (dvd_prod_of_mem Y (by grind)) c).mul_right _).natCast))
+  by_contra C
+  have K {ι} [Fintype ι] (p : ι → _) c H :=
+    C (.trans
+      (length_le_of_detecting_points (.funUnique ..)
+        (fun z h i ↦
+          (mul_smul ..).trans
+            (funext (hΦ (nsmul_mem h _)
+              (fun ψ k ↦ by simpa [funext_iff] using (nsmul_component_eq_zero hS k he (hZ h _)))
+              (p i))))
+        H)
+      (addVal_le_iff_dvd.2
+        (prod_const (Y e)
+          ▸ (pow_dvd_pow_of_dvd_of_le (dvd_prod_of_mem Y (by grind)) c).mul_right _).natCast))
   have := mt (Fintype.card_coe p ▸ hp y (by omega)) (K (↑) · (H · ·.2 ∘ Subtype.forall.1))
   choose! γ hγ using (exists_detecting_points_component (O :=
     O) (ψ := ·) hS · he (hX e he) (by nlinarith))
-  refine K (fun (t, ψ, i) ↦ b (s t) (γ ψ i)) ?_ fun z h k ↦ (nsmul_eq_zero_iff_of_coprime (.pow_left
-    n (coprime_of_lt_prime out ?_ _L.out))).1 ⟨funext₂ ?_, funext₂ (hΦ h (hγ · · _ (hZ h _) ?_))⟩
-  simp [by simpa using sum_characters_eq O (n := N) 1]; grw [(?_ : φ _ ≤ y),
+  refine K
+    (fun (t, ψ, i) ↦ b (s t) (γ ψ i))
+    ?_
+    fun z h k ↦
+      (nsmul_eq_zero_iff_of_coprime (.pow_left n (coprime_of_lt_prime out ?_ _L.out))).1
+        ⟨funext₂ ?_, funext₂ (hΦ h (hγ · · _ (hZ h _) ?_))⟩
+  simp [by simpa using sum_characters_eq O (n := N) 1]
+  grw [(?_ : φ _ ≤ y),
     factorization_le_of_le_pow ((hk _ he).trans ?_), add_one_le_of_lt (?_ : y ^ 6 < y ^ 18)]
-  all_goals (try gcongr) <;> first | nlinarith [N.totient_le] | simp [↓nsmul_quot_eq_zero, k (_, _,
-    _)]
+  all_goals
+    (try gcongr) <;> first | nlinarith [N.totient_le] | simp [↓ nsmul_quot_eq_zero, k (_, _, _)]

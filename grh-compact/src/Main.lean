@@ -9,5 +9,5 @@ theorem LFunction_ne_zero_of_half_lt_re : DirichletLNonvanishingRightOfHalf := N
 
 theorem LFunction_eq_zero_re : DirichletLZerosOnLine := New.zeros_on_line New.grh
 
-theorem LFunction_eq_zero_re_of_isPrimitive : PrimitiveDirichletLZerosOnLine :=
-  fun N _ χ _ ↦ LFunction_eq_zero_re N χ
+theorem LFunction_eq_zero_re_of_isPrimitive : PrimitiveDirichletLZerosOnLine := fun N _ χ _ ↦
+  LFunction_eq_zero_re N χ

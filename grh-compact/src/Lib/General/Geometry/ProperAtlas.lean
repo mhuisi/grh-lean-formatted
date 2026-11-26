@@ -1,36 +1,46 @@
 import Lib.Cohomology.Hodge.HodgeSite
 import Lib.General.Geometry.ProperSchemes
 
-/-! General lemmas of algebraic geometry (textbook or folklore).
+/-!
+General lemmas of algebraic geometry (textbook or folklore).
 
 Part of: Primitive comparison theorem and period isomorphism (known result; see
 Lib.PadicComparison.CrystallineFrobenius.CrystallineCohomology).
 
 This file: Smooth proper schemes are separated functors with finite étale atlases and affine
-covers. -/
+covers.
+-/
 
 open CategoryTheory AlgebraicGeometry Limits PrimeSpectrum Spec pullback Over Category RingHom
   CommAlgCat HasRingHomProperty ULift
 
-
 variable {k} [CommRing k] {R : CommRingCat} [Algebra R k] {W}
 
-lemma isOpenSub_of_landsIn {Z} (t : ∀ {A}, @PointsIn k _ R _ W A → (Spec ⟨A⟩ ⟶ Z)) (ht : ∀ A B φ x,
-  @t B (.map φ x) = specMap φ.hom ≫ @t A x) {V} U (h : ∀ A x, x ∈ U A ↔ LandsIn (t x) V) : IsOpenSub
-  U := fun A x ↦ (t x ⁻¹ᵁ V).2.imp' _ fun I e B φ ↦ by erw [h, ht, ← zeroLocus_empty_iff_eq_top,
-  zeroLocus_span, ← preimage_comap_zeroLocus, zeroLocus_span, e, compl_eq_bot, eq_top_iff]; rfl
+lemma isOpenSub_of_landsIn
+    {Z} (t : ∀ {A}, @PointsIn k _ R _ W A → (Spec ⟨A⟩ ⟶ Z))
+    (ht : ∀ A B φ x, @t B (.map φ x) = specMap φ.hom ≫ @t A x)
+    {V} U (h : ∀ A x, x ∈ U A ↔ LandsIn (t x) V)
+    : IsOpenSub U := fun A x ↦
+  (t x ⁻¹ᵁ V).2.imp' _ fun I e B φ ↦ by
+    erw [h, ht, ← zeroLocus_empty_iff_eq_top, zeroLocus_span, ← preimage_comap_zeroLocus,
+      zeroLocus_span, e, compl_eq_bot, eq_top_iff]
+    rfl
 
 attribute [local simp] map_inj ConcreteCategory.hom_ext_iff landsIn_opensRange
 attribute [local simp ←] Spec.map_comp
 
 instance isSepFunctor_algPoints [IsProper W.hom] : IsSepFunctor (algPointsOf k R W) :=
-  ⟨fun _ ⟨x⟩ _ ↦ ((isProperOver_pointsToBase
-  W.hom).1 _ ⟨x.1⟩ ⟨_⟩).imp fun _ h _ _ ↦ by erw [up_inj, OverMorphism.ext_iff, ← up_inj, h]; rfl⟩
+  ⟨fun _ ⟨x⟩ _ ↦
+    ((isProperOver_pointsToBase W.hom).1 _ ⟨x.1⟩ ⟨_⟩).imp fun _ h _ _ ↦ by
+      erw [up_inj, OverMorphism.ext_iff, ← up_inj, h]; rfl⟩
 
-/-- If W is proper over Spec R and its base change to the R-algebra k is smooth of relative
-dimension d, then the functor of points of W on k-algebras has an atlas of dimension d. -/
-lemma hasAtlas_algPoints d [IsProper W.hom] [h : SmoothOfRelativeDimension d (snd
-    W.hom (specMap (algebraMap R k)))] : HasAtlas d (algPointsOf k R W) := by
+/--
+If W is proper over Spec R and its base change to the R-algebra k is smooth of relative
+dimension d, then the functor of points of W on k-algebras has an atlas of dimension d.
+-/
+lemma hasAtlas_algPoints
+    d [IsProper W.hom] [h : SmoothOfRelativeDimension d (snd W.hom (specMap (algebraMap R k)))]
+    : HasAtlas d (algPointsOf k R W) := by
   choose t u v using fun {A} (x : PointsIn W A) ↦ exists_lift _ _ _ (specOver k A).hom
     (x.1.w.trans (map_comp ..))
   have m A B φ x : @t B (x.map φ) = specMap φ.hom ≫ @t A x := by aesop
@@ -48,19 +58,32 @@ lemma hasAtlas_algPoints d [IsProper W.hom] [h : SmoothOfRelativeDimension d (sn
       (by simpa [m, hy, cancel_mono] using congrArg t ·), isOpenSub_of_landsIn t m _ ?q⟩, ?q⟩
     simpa -proj [← hy] using fun A x ↦ ⟨fun ⟨φ, e⟩ ↦ e ▸ ⟨_, (m ..).symm⟩, fun ⟨φ, e⟩ ↦ ⟨⟨ofHom
       ⟨_, by simpa [v] using e =≫ snd ..⟩⟩, up_inj.2 (OverMorphism.ext (by erw [← u, m, e, u]))⟩⟩
-  exact (finite_cover_nhds ((V _).2.mem_nhds <| hV ·)).elim fun T e ↦ ⟨_,
-    (a <| T.equivFin.symm ·), fun K k x ↦ let := k.toField
-    by simpa [T.equivFin.surjective.exists, ↓h, landsIn_iff_mem] using e.ge ⟨⟩⟩
+  exact (finite_cover_nhds ((V _).2.mem_nhds <| hV ·)).elim fun T e ↦ ⟨
+    _,
+    (a <| T.equivFin.symm ·),
+    fun K k x ↦
+      let := k.toField
+      by simpa [T.equivFin.surjective.exists, ↓ h, landsIn_iff_mem] using e.ge ⟨⟩
+  ⟩
 
-/-- If every ring ι(c) satisfies `IsComparableRing`, the points of a proper R-scheme W on these
+/--
+If every ring ι(c) satisfies `IsComparableRing`, the points of a proper R-scheme W on these
 rings are the restriction of a separated functor onto which the points of one affine scheme
-surject at every ι(c) (`IsAffinelyCovered`). -/
-lemma isAffinelyCovered_algPoints {C} [Category C] {ι : C ⥤ CommAlg k} (h : ∀ c,
-  IsComparableRing (@id (ι c))) W [IsProper W.hom] : IsAffinelyCovered ι (algPointsOf k R W) :=
-  (exists_finiteType_atlas (snd ..)).elim
-  fun T ⟨t, _, H⟩ ↦ (map_surjective (t ≫ snd ..)).elim fun ρ E ↦ let := ρ.hom.toAlgebra
-  ⟨isSepFunctor_algPoints, _,
-    ⟨homMk _ (by erw [assoc, condition, ← reassoc_of% E, ← map_comp]; rfl)⟩,
-    fun c x ↦ (H _ (h c) (lift _ _ (x.1.w.trans (map_comp (CommRingCat.ofHom _) _)))).elim fun u e ↦
-    ⟨⟨ofHom ⟨u.1, by simpa [← E] using! (e =≫ _).trans (lift_snd ..)⟩⟩,
-    by exact congr(⟨$(OverMorphism.ext ((e =≫ _).trans (lift_fst ..)))⟩)⟩⟩
+surject at every ι(c) (`IsAffinelyCovered`).
+-/
+lemma isAffinelyCovered_algPoints
+    {C} [Category C] {ι : C ⥤ CommAlg k} (h : ∀ c, IsComparableRing (@id (ι c))) W [IsProper W.hom]
+    : IsAffinelyCovered ι (algPointsOf k R W) :=
+  (exists_finiteType_atlas (snd ..)).elim fun T ⟨t, _, H⟩ ↦
+    (map_surjective (t ≫ snd ..)).elim fun ρ E ↦
+      let := ρ.hom.toAlgebra
+      ⟨
+        isSepFunctor_algPoints,
+        _,
+        ⟨homMk _ (by erw [assoc, condition, ← reassoc_of% E, ← map_comp]; rfl)⟩,
+        fun c x ↦
+          (H _ (h c) (lift _ _ (x.1.w.trans (map_comp (CommRingCat.ofHom _) _)))).elim fun u e ↦ ⟨
+            ⟨ofHom ⟨u.1, by simpa [← E] using! (e =≫ _).trans (lift_snd ..)⟩⟩,
+            by exact congr(⟨$(OverMorphism.ext ((e =≫ _).trans (lift_fst ..)))⟩)
+          ⟩
+      ⟩

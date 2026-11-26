@@ -1,7 +1,8 @@
 import Lib.Shimura.GoodReduction.PeakContraction
 import Lib.Shimura.ThetaModuli.FamilyFromPoints
 
-/-! Known result: Good reduction of unitary PEL abelian varieties, in analytic form (no toric
+/-!
+Known result: Good reduction of unitary PEL abelian varieties, in analytic form (no toric
 degeneration). Here a torus with polarisation prime to p is assumed to have arbitrarily expanding
 non-unit multipliers dividing a power of p, prime to their conjugates, whose conjugates have unit
 determinant on the Lie algebra. Then the sup of a valuation of theta values at torsion points is
@@ -10,23 +11,29 @@ multiplicative. Source: K.-W. Lan, Elevators for degenerations of PEL structures
 (1992), §5 (division algebra case); for the CM case B. Conrad, Semistable reduction for abelian
 varieties (notes), Prop. 6.3, after Serre and Tate, Ann. of Math. 88 (1968).
 
-This file: Theta tori over good places have multiplicative sup norm; degree and level are units. -/
+This file: Theta tori over good places have multiplicative sup norm; degree and level are units.
+-/
 
 open NumberField IsLocalRing Valuation LinearMap Ideal IsPrime valuationSubring PeriodMap
 
-/-- Good reduction of a theta torus x: if Φ_{v₀} maps O_E into the valuation ring of v, over a
+/--
+Good reduction of a theta torus x: if Φ_{v₀} maps O_E into the valuation ring of v, over a
 prime good for D, then the v-adic sup norm on torsion points is multiplicative
 (`HasGoodReduction`), and r and |T| are v-units.
 
 Known result: Good reduction of unitary PEL abelian varieties, in analytic form (no toric
-degeneration). -/
-lemma ThetaTorus.hasGoodReduction_and_val_card_eq_one {E} [Field E] [CMBase E] {V}
-  [FinComplexSpace V] {D g ℓ} (x : ThetaTorus D g ℓ V)
-  {v} {ρ : 𝓞 E →+* v.valuationSubring} (B : ∀ c, ρ c = Φ v₀ c.val) (hw : D.IsGoodAt
-  (comap ρ (maximalIdeal _))) : HasGoodReduction x.B x.multiplier v D.r ∧ v (Nat.card D.T) = 1 := by
+degeneration).
+-/
+lemma ThetaTorus.hasGoodReduction_and_val_card_eq_one
+    {E} [Field E] [CMBase E]
+    {V} [FinComplexSpace V]
+    {D g ℓ} (x : ThetaTorus D g ℓ V)
+    {v} {ρ : 𝓞 E →+* v.valuationSubring}
+    (B : ∀ c, ρ c = Φ v₀ c.val) (hw : D.IsGoodAt (comap ρ (maximalIdeal _)))
+    : HasGoodReduction x.B x.multiplier v D.r ∧ v (Nat.card D.T) = 1 := by
   have ⟨⟨hr, hT⟩, p, b, pp, pw, bw, cb, _, w, ww, pw', q⟩ := hw
-  obtain ⟨⟨t, tw, tn⟩, n⟩ := Set.not_subset.1 (ww ∘ w.isMaximal.eq_of_le ne_top'),
-    notMem_of_isCoprime_of_mem cb bw
+  obtain ⟨⟨t, tw, tn⟩, n⟩ :=
+    Set.not_subset.1 (ww ∘ w.isMaximal.eq_of_le ne_top'), notMem_of_isCoprime_of_mem cb bw
   simp [(integers v).isUnit_iff_valuation_eq_one, B] at hr hT tn n
   let H := (2⁻¹ : ℂ) • (x.B + x.B.pullForm (Complex.I • 1))
   have : riemannForm H = x.B.riemannForm := by ext; simp [riemannForm, H, re_symm]; ring

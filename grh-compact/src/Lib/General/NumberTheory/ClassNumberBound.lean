@@ -1,14 +1,16 @@
 import Lib.General.NumberTheory.ProcyclicImage
 
-/-! General lemmas of algebraic number theory (textbook or folklore).
+/-!
+General lemmas of algebraic number theory (textbook or folklore).
 
-This file: Crude bound for the class number by degree and discriminant. -/
+This file: Crude bound for the class number by degree and discriminant.
+-/
 
 open NumberField Ideal Module Set Real Nat
 
 /-- The class number of a number field F of degree n over ℚ is at most (2ⁿ |disc F|)^{n+1}. -/
-lemma classNumber_le F [Field F] [NumberField F] :
-    classNumber F ≤ (2 ^ finrank ℚ F * (discr F).natAbs) ^ (finrank ℚ F + 1) := by
+lemma classNumber_le F [Field F] [NumberField F]
+    : classNumber F ≤ (2 ^ finrank ℚ F * (discr F).natAbs) ^ (finrank ℚ F + 1) := by
   have {B} (n : Ioc 0 B) := (span {(n : 𝓞 F)}).absNorm_ne_zero_iff.1 (by aesop)
   grw [classNumber, ← card_eq_fintype_card, (card_le_card_of_surjective (fun x ↦ .mk0
     ⟨span {↑x.1, x.2.out}, by simp; grind⟩) fun C ↦ ?_).trans_eq (@card_sigma _ _ _ this),
@@ -20,5 +22,6 @@ lemma classNumber_le F [Field F] [NumberField F] :
   use ⟨⟨_, this, ?_⟩, ‹𝓞 F›⟩
   simp_all [← comap_map_quotientMk, span_insert]
   rify
-  grw [hI, factorial_le_pow, ← two_le_pi, sqrt_le_self_iff.2 (mod_cast by grind)]; ring
+  grw [hI, factorial_le_pow, ← two_le_pi, sqrt_le_self_iff.2 (mod_cast by grind)]
+  ring
   bound [InfinitePlace.card_add_two_mul_card_eq_rank F]
